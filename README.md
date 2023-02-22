@@ -1,4 +1,5 @@
-This is a Modification of Sams Rebalance and Smear Code that incldues the usage of my DNN, original instructions below:
+This is a Modification of Sams Rebalance and Smear Code that incldues the usage of my DNN. Before use, one must modify the patch in src/SkimMonophoton.py to the location of the onnx folder.
+Original instructions below:
 
 
 # SUSY photons skimmer and analysis code
