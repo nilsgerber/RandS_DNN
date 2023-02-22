@@ -1,4 +1,3 @@
-
 #Welcome to the industrial age of Sam's rebalance and smear code. You're going to have a lot of fun!
 import os,sys
 from ROOT import *
@@ -13,7 +12,7 @@ from cppyy.gbl import *
 
 
 ###stuff that would be nice in a config file:
-met4skim = 200
+met4skim = 0 #200
 mhtjetetacut = 5.0 # also needs be be changed in UsefulJet.h
 AnHardMetJetPtCut = 30.0
 rebalancedMetCut = 150
@@ -21,9 +20,15 @@ rebalancedMetCut = 150
 nametag = {'Nom':'', 'Up': 'JerUp'}
 
 ##load in UsefulJet class, which the rebalance and smear code uses
+
+
+gInterpreter.AddIncludePath("/nfs/dust/cms/user/gerberni/CMSSW_12_2_3/src/SusyPhotons/onnxruntime")
+gInterpreter.Declare("#include <core/session/experimental_onnxruntime_cxx_api.h>")
 gROOT.ProcessLine(open('src/UsefulJet.cc').read())
 exec('from ROOT import *')
 
+gInterpreter.AddIncludePath("/nfs/dust/cms/user/gerberni/CMSSW_12_2_3/src/SusyPhotons/onnxruntime")
+gInterpreter.Declare("#include <core/session/experimental_onnxruntime_cxx_api.h>")
 gROOT.ProcessLine(open('src/BayesRandS.cc').read())
 exec('from ROOT import *')
 
@@ -212,7 +217,7 @@ else:
 n2process = c.GetEntries()
 nentries = c.GetEntries()
 if quickrun: 
-    n2process = min(1000,n2process)
+    n2process = min(10,n2process)
 
 
 print ('will analyze', n2process, 'events')
@@ -863,8 +868,10 @@ for ientry in range((extended-1)*n2process, extended*n2process):
 
 
     if nsmears==0: continue
+    print(ientry," will now attempt to smear ", nsmears)
 
     fitsucceed = RebalanceJets(recojets)
+    print(ientry," suceeded at rebalancing ", fitsucceed)
     rebalancedJets = _Templates_.dynamicJets
 
 

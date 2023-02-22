@@ -50,7 +50,7 @@ try: fileskey = sys.argv[1]
 except: fileskey = '/eos/uscms//store/user/sbein/RebalanceAndSmear/Run2ProductionV17/*Summer16v3.QCD*.root'
 
 
-print 'fileskey', fileskey
+#print 'fileskey', fileskey
 if 'Run20' in fileskey: isdata = True
 else: isdata = False
 
@@ -78,13 +78,13 @@ if not isdata:
     ccounter = TChain('tcounter')
     for fname in fins: ccounter.Add(fname.replace('/eos/uscms/','root://cmseos.fnal.gov//'))
     nev_total = ccounter.GetEntries()
-    print 'nevents in total =', nev_total
+    #print 'nevents in total =', nev_total
     
 chain = TChain('TreeMaker2/PreSelection')
-print 'fileskey', fileskey
+#print 'fileskey', fileskey
 for fname in fins: chain.Add(fname.replace('/eos/uscms/','root://cmseos.fnal.gov//'))
 chain.Show(0)
-print 'nevents in skim =', chain.GetEntries()
+#print 'nevents in skim =', chain.GetEntries()
 
 #chain.SetBranchStatus('NJets', 1)
 #chain.SetBranchStatus('HT', 1)
@@ -112,16 +112,16 @@ plotBundle = {}
 
 
 #2d plots
-plotBundle['OnePho_BDT'] = ['mva_BDT>>hadc(24,-1.2,1.2)','HardMETPt>200 && NPhotons>=1',False]
-plotBundle['OnePho_HardMet'] = ['min(HardMETPt,999)>>hadchadc(20,0,1000)','HardMETPt>200 && NPhotons>=1',False]
-plotBundle['OnePho_NJets'] = ['min(mva_Ngoodjets,9)>>hadc(11,-1,10)','HardMETPt>200 && NPhotons>=1',False]
-plotBundle['OnePho_Pho1Pt'] = ['min(analysisPhotons[0].Pt(),499.9)>>hadc(100,0,500)','HardMETPt>200 && NPhotons>=1',False]
-plotBundle['OnePho_Eta1Pt'] = ['min(analysisPhotons[0].Eta(),499.9)>>hadc(25,-5,5)','HardMETPt>200 && NPhotons>=1',False]
-plotBundle['OnePho_Pho2Pt'] = ['min(analysisPhotons[1].Pt(),499.9)>>hadc(100,0,500)','HardMETPt>200 && NPhotons>=2',False]
-plotBundle['OnePho_Eta2Pt'] = ['min(analysisPhotons[1].Eta(),499.9)>>hadc(25,-5,5)','HardMETPt>200 && NPhotons>=2',False]
-plotBundle['OnePho_ST_jets'] = ['mva_ST_jets>>hadc(16,0,800)','HardMETPt>200 && NPhotons>=1',False]
-plotBundle['OnePho_ST'] = ['mva_ST>>hadc(10,100,2300)','HardMETPt>200 && NPhotons>=1',False]
-plotBundle['OnePho_nPhotons'] = ['NPhotons>>hadc(3,1,4)','HardMETPt>200 && NPhotons>=1',False]
+plotBundle['OnePho_BDT'] = ['mva_BDT>>hadc(24,-1.2,1.2)','HardMETPt>0 && NPhotons>=1',False]
+plotBundle['OnePho_HardMet'] = ['min(HardMETPt,999)>>hadchadc(20,0,1000)','HardMETPt>0 && NPhotons>=1',False]
+plotBundle['OnePho_NJets'] = ['min(mva_Ngoodjets,9)>>hadc(11,-1,10)','HardMETPt>0 && NPhotons>=1',False]
+plotBundle['OnePho_Pho1Pt'] = ['min(analysisPhotons[0].Pt(),499.9)>>hadc(100,0,500)','HardMETPt>0 && NPhotons>=1',False]
+plotBundle['OnePho_Eta1Pt'] = ['min(analysisPhotons[0].Eta(),499.9)>>hadc(25,-5,5)','HardMETPt>0 && NPhotons>=1',False]
+plotBundle['OnePho_Pho2Pt'] = ['min(analysisPhotons[1].Pt(),499.9)>>hadc(100,0,500)','HardMETPt>0 && NPhotons>=2',False]
+plotBundle['OnePho_Eta2Pt'] = ['min(analysisPhotons[1].Eta(),499.9)>>hadc(25,-5,5)','HardMETPt>0 && NPhotons>=2',False]
+plotBundle['OnePho_ST_jets'] = ['mva_ST_jets>>hadc(16,0,800)','HardMETPt>0 && NPhotons>=1',False]
+plotBundle['OnePho_ST'] = ['mva_ST>>hadc(10,100,2300)','HardMETPt>0 && NPhotons>=1',False]
+plotBundle['OnePho_nPhotons'] = ['NPhotons>>hadc(3,1,4)','HardMETPt>0 && NPhotons>=1',False]
 
 
 infilekey = fileskey.split('/')[-1].replace('*','').replace('.root','')
@@ -130,7 +130,7 @@ if 'T5' in infilekey or 'T6' in infilekey: newfilename = newfilename.replace('me
 
     
 fnew = TFile(newfilename, 'recreate')
-print 'will make file', fnew.GetName()
+#print 'will make file', fnew.GetName()
 c1 = mkcanvas()
 c2 = mkcanvas('c2')
 
@@ -138,7 +138,7 @@ for key in plotBundle:
     drawarg, constraint, blinding = plotBundle[key]
     obsweight = evtweight+'*('+constraint + ' && '+ universalconstraint + ' && IsRandS==0)'
     #puWeight
-    print 'drawing', drawarg, ', with constraint:', obsweight
+    #print 'drawing', drawarg, ', with constraint:', obsweight
     chain.Draw(drawarg,obsweight, 'e')
     hobs = chain.GetHistogram().Clone(key+'_obs')
     if not ('Vs' in key): hobs.GetYaxis().SetRangeUser(0.01,10000*hobs.GetMaximum())
@@ -149,7 +149,7 @@ for key in plotBundle:
     randsconstraint = constraint
     methweight = evtweight+'/NSmearsPerEvent*('+ randsconstraint + ' && '+universalconstraint+ ' && IsRandS==1 && rebalancedHardMet<120)'
     #puWeight
-    print 'drawing', drawarg, ', with constraint:', methweight
+    #print 'drawing', drawarg, ', with constraint:', methweight
     chain.Draw(drawarg, methweight, 'e')
     hrands = chain.GetHistogram().Clone(key+'_rands') 
     if blinding and 'Run20' in fileskey: hobs = hrands.Clone(key+'_obs')
@@ -172,12 +172,12 @@ for key in plotBundle:
         c1.Print('pdfs/Closure/'+key+'.pdf')        
     hrands.Write('h'+hrands.GetName())
     hobs.Write('h'+hobs.GetName())
-    print sys.argv
+    #print sys.argv
 
 
 
 
 
-print 'just created', fnew.GetName()
+print( 'just created', fnew.GetName())
 fnew.Close()
 

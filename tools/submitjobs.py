@@ -53,11 +53,11 @@ try:
 	moreargs = ' '.join(sys.argv)
 	moreargs = moreargs.split('--fnamekeyword')[-1]	
 	moreargs = ' '.join((moreargs.split()[1:]))
-        print moreargs
+#        print(moreargs)
 except: moreargs = ''
 
 moreargs = moreargs.strip()
-print 'moreargs', moreargs
+print( 'moreargs', moreargs)
 
 
 
@@ -103,7 +103,7 @@ def main():
         if skipFilesWithErrorFile:
             errfilename = 'jobs/'+job+'.err'
             if os.path.exists(errfilename): 
-                print 'skipping you...', errfilename
+                print('skipping you...', errfilename)
                 continue
         newsh = open('jobs/'+job+'.sh','w')
         newshstr = shtemplate.replace('ANALYZER',analyzer).replace('FNAMEKEYWORD',fname).replace('MOREARGS',moreargs).replace('DOUT',dout)
@@ -156,7 +156,7 @@ rm *.root
 '''
 
 main()
-print 'done'
+print('done')
 #   xrdcp "$f" root://cmseos.fnal.gov//store/group/lpcsusyphotons/TreeMakerRandS_signal_fragmented/
 #  xrdcp "$f" root://cmseos.fnal.gov//store/group/lpcsusyphotons/TreeMakerRandS_skimsv7/
 #   xrdcp "$f" root://cmseos.fnal.gov//store/group/lpcsusyphotons/TreeMakerRandS_muskimsv7/

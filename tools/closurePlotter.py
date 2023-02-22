@@ -32,7 +32,7 @@ for key in keys:
     if not 'obs' in name: continue
     hObserved = fileA.Get(name)
     if datamc=='mc': hObserved.Scale(1000*lumi)
-    print 'processing', name
+    #print ('processing', name)
     hObserved.SetTitle('Summer16 GJets')
 
     histoStyler(hObserved, 1)
@@ -51,7 +51,7 @@ for key in keys:
     if 'mva' in name: kinvar = '_'.join(name.split('_')[1:]).replace('_obs','')
     else: kinvar = name.split('_')[1]
     
-    print 'found kinvar', kinvar, 'from', name
+    #print ('found kinvar', kinvar, 'from', name)
     cGold = TCanvas('cEnchilada','cEnchilada', 800, 800)
     if kinvar in redoBinning.keys():
         if len(redoBinning[kinvar])>3: ##this should be reinstated
@@ -87,8 +87,8 @@ for key in keys:
     cname = 'c_'+name[1:]
     newfile.cd()
     cGold.Write(cname)
-    #print 'trying:','pdfs/ClosureTests/'+selection+'_'+method+'And'+standard+'_'+kinvar+'.pdf'
+    ##print( 'trying:','pdfs/ClosureTests/'+selection+'_'+method+'And'+standard+'_'+kinvar+'.pdf')
     cGold.Print('pdfs/Closure/'+year+cname[1:]+'.pdf')
 
 
-print 'just created', newfile.GetName()
+print( 'just created', newfile.GetName())

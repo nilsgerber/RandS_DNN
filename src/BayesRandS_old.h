@@ -8,8 +8,6 @@
 #include <algorithm>
 #include <assert.h>
 #include <sstream>
-#include <ctime>
-#include <cstdlib>
 #include "TLorentzVector.h"
 #include "TMinuit.h"
 #include "TF1.h"
@@ -27,7 +25,6 @@ double _ptNew_, _ptBinC_, _PtBinOther_, _interpolatedFactor_;
 double _a_, _b_; 
 int _ietaNew_, _iptNew_, _otherbin_;
 double _rmht_, _rdphi_;
-
 
 float scaler (float a1, float a2, float a3) {
         float a_scaled = ((a1 - a2)/ a3);
@@ -113,17 +110,14 @@ void fcn(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag)
   static const float s2 = 1.0124098180884966;
   static const float s3 = 0.6776607234778558;
 
-  static std::string model_file = "model.onnx";
+  std::string model_file = "model.onnx";
 
   // onnxruntime setup creating session
-  static Ort::Env env(ORT_LOGGING_LEVEL_WARNING, "example-model-explorer");
-  static Ort::SessionOptions session_options;
-  static Ort::Experimental::Session session = Ort::Experimental::Session(env, model_file, session_options);
-  
-  //std::vector<std::string> input_names = session.GetInputNames();
-  //std::vector<std::vector<int64_t> > input_shapes = session.GetInputShapes();
-  //std::vector<std::string> output_names = session.GetOutputNames();
-  //std::vector<std::vector<int64_t> > output_shapes = session.GetOutputShapes();
+ # Ort::Env env(ORT_LOGGING_LEVEL_WARNING, "example-model-explorer");
+ # Ort::SessionOptions session_options;
+ # Ort::Experimental::Session session = Ort::Experimental::Session(env, model_file, session_options); 
+
+
   
   _ActiveLikelihood_ = 1.0;
   _iLeadJet_ = 0; _LeadJetPt_ = 0; _nbjets_ = 0; 
@@ -156,7 +150,6 @@ void fcn(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag)
       _b_ = (_ptNew_-_ptBinC_)/(_PtBinOther_ - _ptBinC_);
       float _eta_ = fabs(_Templates_.dynamicJets[i].Eta());
       // cout << "nn inputs: jetresp "<< par[i] << " pt: " << _ptNew_ << " eta: " << _eta_ << endl;
-
       //running the model
       //scaling the input x1 = pt x2 = eta x3 = jetresp
       float x1_scaled = scaler(_ptNew_,u1,s1);
@@ -164,14 +157,14 @@ void fcn(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag)
       float x3_scaled = scaler(par[i],u3,s3);
 
       // Assume model has 3 input node and 1 output node.
-      assert(input_names.size() == 3 && output_names.size() == 1);
-      std::vector<float> input_tensor_values{x1_scaled,x2_scaled,x3_scaled};
-      std::vector<Ort::Value> input_tensors;
-      input_tensors.push_back(Ort::Experimental::Value::CreateTensor<float>(input_tensor_values.data(), input_tensor_values.size(), {1,3}));
-      auto output_tensors = session.Run(session.GetInputNames(), input_tensors, session.GetOutputNames());
-      float* floatarr = output_tensors.front().GetTensorMutableData<float>();
-      float outp = sigmoid(floatarr[0]);
-/*
+  //  assert(input_names.size() == 3 && output_names.size() == 1);
+   //  std::vector<float> input_tensor_values{x1_scaled,x2_scaled,x3_scaled};
+   //  std::vector<Ort::Value> input_tensors;
+   //  input_tensors.push_back(Ort::Experimental::Value::CreateTensor<float>(input_tensor_values.data(), input_tensor_values.size(), {1,3}));
+   //  auto output_tensors = session.Run(session.GetInputNames(), input_tensors, session.GetOutputNames());
+   //  float* floatarr = output_tensors.front().GetTensorMutableData<float>();
+   //   float outp = sigmoid(floatarr[0]);
+
       try
 		{
 	  _interpolatedFactor_ = 0.5*(_a_*_Templates_.ResponseFunctions[_Templates_.dynamicJets[i].btagscore>DEFAULT_BTAGCUT][_ietaNew_][_iptNew_]->Eval(par[i],0,"S") +
@@ -181,10 +174,9 @@ void fcn(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag)
 	{
 	  _interpolatedFactor_ = _b_*_Templates_.ResponseFunctions[_Templates_.dynamicJets[i].btagscore>DEFAULT_BTAGCUT][_ietaNew_][_iptNew_+_otherbin_]->Eval(par[i],0,"S");
 	}
-      _ActiveLikelihood_*=_interpolatedFactor_;
-*/
+     _ActiveLikelihood_*=_interpolatedFactor_;
 	//cout << "nn output: " << outp << " response value: " << (1/(1-outp)) << " pt: " << _ptNew_ << " intfactor: " << _interpolatedFactor_ << endl; 
-      _ActiveLikelihood_*= ((1/(1-outp))/20); 
+    //  _ActiveLikelihood_*= (1/(1-outp)); 
    }
   _ActiveHt_ = TMath::Min(4999.0,_ActiveHt_);
   _iht_ = _Templates_.hHtTemplate->GetXaxis()->FindBin(_ActiveHt_);
@@ -228,7 +220,6 @@ void fcn(Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag)
 bool RebalanceJets(std::vector<UsefulJet> originalJets){
 
   _Templates_.dynamicJets.clear();
-  _Templates_.dynamicJets.reserve(originalJets.size());
   _Templates_.nparams = 0;  
 
   for (unsigned int j = 0; j < originalJets.size(); j++)
@@ -246,16 +237,6 @@ bool RebalanceJets(std::vector<UsefulJet> originalJets){
 
   TMinuit * gMinuit = new TMinuit(_Templates_.nparams);
   //gMinuit->SetPrintLevel(0);
-  
-  //load the onnx session
-//  std::string model_file = "model.onnx";
-//  Ort::Env env(ORT_LOGGING_LEVEL_WARNING, "example-model-explorer");
-//  Ort::SessionOptions session_options;
-//  Ort::Experimental::Session session = Ort::Experimental::Session(env, model_file, session_options);
-
-  //create a lambda
-//    auto fcn = [&session](Int_t &npar, Double_t *gin, Double_t &f, Double_t *par, Int_t iflag) {
-//  };
 
   gMinuit->SetFCN(fcn);
   gMinuit->SetPrintLevel(-1);
@@ -308,79 +289,21 @@ bool RebalanceJets(std::vector<UsefulJet> originalJets){
   return true;
 }
 
-double scaler_d (double a1, double a2, double a3) {
-        float a_scaled = ((a1 - a2)/ a3);
-        return a_scaled;
-}
 
 std::vector<UsefulJet> smearJets(std::vector<UsefulJet> jetVec, int n2smear){
-  // set scaler variables
-  
-  static const float u1 = 58.19190033;
-  static const float u2 = 1.32467647;
-  static const float u3 = 1.25019899;
-  static const float s1 = 48.82642699257045;
-  static const float s2 = 1.0124098180884966;
-  static const float s3 = 0.6776607234778558;
-
-  static std::string model_file = "model.onnx";
-  // onnxruntime session setup
-  static Ort::Env env(ORT_LOGGING_LEVEL_WARNING, "example-model-explorer");
-  static Ort::SessionOptions session_options;
-  static Ort::Experimental::Session session = Ort::Experimental::Session(env, model_file, session_options);  // access experimental components via the Experimental namespace
-  //seed rand(), used for rej sampling
-  srand (static_cast <unsigned> (time(0)));
-   //comment out network
-  
   std::vector<UsefulJet> smearedJets;
-  smearedJets.reserve(jetVec.size());
   for (unsigned int j=0; j<jetVec.size(); j++){
-    
-
-
-
-
     smearedJets.push_back(jetVec[j].Clone());
-    float pt2 = scaler_d(smearedJets.back().Pt(),u1,s1); 
-    float eta2 = scaler_d(smearedJets.back().Eta(),u2,s2); 
-    double pt = smearedJets.back().Pt();
-    double eta = smearedJets.back().Eta();
+    double pt = smearedJets.back().Pt(); 
+    double eta = smearedJets.back().Eta(); 
     if (pt<8 || int(j)>=n2smear){std::cout << j << " continuing" << std::endl; continue;}
-    
-    float outp = 0;
-    int i = 0;
-    while (i < 1000){
-      float x = static_cast <float> (rand()) / static_cast <float> (RAND_MAX/3);
-      float y = static_cast <float> (rand()) / static_cast <float> (RAND_MAX/20);
-      assert(input_names.size() == 3 && output_names.size() == 1);
-      std::vector<float> input_tensor_values{pt2,eta2,scaler(x,u3,s3)};
-      input_tensor_values.reserve(1000);
-      std::vector<Ort::Value> input_tensors;
-      input_tensors.reserve(1000);
-      input_tensors.push_back(Ort::Experimental::Value::CreateTensor<float>(input_tensor_values.data(),input_tensor_values.size(), {1,3}));
-
-      auto output_tensors = session.Run(session.GetInputNames(), input_tensors, session.GetOutputNames());
-      float netOutp = sigmoid(output_tensors.front().GetTensorMutableData<float>()[0]);
-      if ((netOutp/(1-netOutp)) > y) {
-	      outp = x;
-	      i += 1000;
-      } else {
-	      i++;
-	      if (i==1000) {
-		      outp = 1;
-	      }
-      }
-    }
-
-    //comment out network
     int ieta = _Templates_.hEtaTemplate->GetXaxis()->FindBin(fabs(eta));
     int ipt = _Templates_.hPtTemplate->GetXaxis()->FindBin(pt);
 
     if (!(_Templates_.ResponseHistos.at(smearedJets.back().btagscore>DEFAULT_BTAGCUT).at(ieta).at(ipt)->Integral()==0))
       {
-//	double rando = _Templates_.ResponseHistos.at(smearedJets.back().btagscore>DEFAULT_BTAGCUT).at(ieta).at(ipt)->GetRandom();
-//        smearedJets.back()*=rando;
-	smearedJets.back()*=outp;
+	double rando = _Templates_.ResponseHistos.at(smearedJets.back().btagscore>DEFAULT_BTAGCUT).at(ieta).at(ipt)->GetRandom();
+	smearedJets.back()*=rando;
       }
   }
   std::sort(smearedJets.begin(), smearedJets.end());
@@ -538,7 +461,6 @@ void GleanTemplatesFromFile(TFile* ftemplate)
 std::vector<double> createMatchedBtagscoreVector(std::vector<TLorentzVector> GenJets, std::vector<UsefulJet> RecoJets)
 {
   std::vector<double> matchedBtagscores;
-  matchedBtagscores.reserve(GenJets.size());
   for (unsigned int ig = 0; ig<GenJets.size(); ig++)
     {
       double btagscore = 0;

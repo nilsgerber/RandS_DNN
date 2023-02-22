@@ -103,12 +103,14 @@ struct TemplateSet
   double rebThresh;
   double lhdMhtThresh;
   std::vector<UsefulJet> untouchedJets;
-
+  
   int nparams;
   std::vector<UsefulJet> dynamicJets;
   TLorentzVector AcmeVector;
+  
 
   TemplateSet() {}
+  
 };
 
 UsefulJet operator+(UsefulJet first, const UsefulJet& second){
